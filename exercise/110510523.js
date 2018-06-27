@@ -45,25 +45,25 @@ function addSymbol(symbol) {
   symTop ++;
 } 
 
-asm(file+'.asm', file+'.hack'); 
+asm(file+'.asm', file+'.hack');  
 
 function asm(asmFile, objFile) {    
     var asmText = fs.readFileSync(asmFile, "utf8"); 
                                                    
-    var lines   = asmText.split(/\r?\n/);    //????????// \r \n??????      
+    var lines   = asmText.split(/\r?\n/);   //?????????????     
                                                    
-    c.log(JSON.stringify(lines, null, 2));   //????????      
-    pass1(lines);      //?????????                           
-    pass2(lines, objFile);     //????                    
+    c.log(JSON.stringify(lines, null, 2));  //????      
+    pass1(lines);          //?????????           
+    pass2(lines, objFile);      //????                 
 }
 
-function parse(line, i) {             //"line"??????                  
-    line.match(/^([^\/]*)(\/.*)?$/);  //????? //???????                      
-    line = RegExp.$1.trim(); //????
+function parse(line, i) {                         
+    line.match(/^([^\/]*)(\/.*)?$/);                     
+    line = RegExp.$1.trim(); 
     if (line.length===0)                                
       return null;
-    if (line.startsWith("@")) {     //?????????"@"??A??                
-      return { type:"A", arg:line.substring(1).trim() }  //?0??"@" ?????1?????????
+    if (line.startsWith("@")) {              
+      return { type:"A", arg:line.substring(1).trim() } 
     } else if (line.match(/^\(([^\)]+)\)$/)) {           
       return { type:"S", symbol:RegExp.$1 }
     } else if (line.match(/^((([AMD]*)=)?([AMD01\+\-\&\|\!]*))(;(\w*))?$/)) {
@@ -71,7 +71,7 @@ function parse(line, i) {             //"line"??????
       return { type:"C", c:RegExp.$4, d:RegExp.$3, j:RegExp.$6 } 
         
     } else {
-      throw "Error: line "+(i+1);  //??A?????C???????????
+      throw "Error: line "+(i+1);  
     }
   }
   
@@ -79,14 +79,14 @@ function parse(line, i) {             //"line"??????
     c.log("============== pass1 ================");
     var address = 0;
     for (var i=0; i<lines.length; i++) {
-      var p = parse(lines[i], i);        //???????????????????? 
-      if (p===null) continue;          //"??"or"???"        
-      if (p.type === "S") {          //"S"???????          
+      var p = parse(lines[i], i);        //??????? ?????????? ????????
+      if (p===null) continue;        //"??"?"??"      
+      if (p.type === "S") {        //????        
         c.log(" symbol: %s %s", p.symbol, intToStr(address, 4, 10));
-        symTable[p.symbol] = address;  //"??"???????????
-        continue;    //????+1????"continue"                          
+        symTable[p.symbol] = address;  
+        continue;                             
       } else {                                 
-       c.log(" p: %j", p);   //????                  
+       c.log(" p: %j", p);                   
       }
       c.log("%s:%s %s", intToStr(i+1, 3, 10), intToStr(address, 4, 10),  lines[i]);
       address++;  
@@ -94,11 +94,11 @@ function parse(line, i) {             //"line"??????
     }
   }
   
-  function pass2(lines, objFile) {      //objFile????                     
+  function pass2(lines, objFile) {                       
     c.log("============== pass2 ================");
     var ws = fs.createWriteStream(objFile);
     ws.once('open', function(fd) {
-      var address = 0;        //??????????0??                               
+      var address = 0;                                    
       for (var i=0; i<lines.length; i++) {
         var p = parse(lines[i], i);
         if (p===null || p.type === "S") continue; 
@@ -120,17 +120,17 @@ function parse(line, i) {             //"line"??????
   
   function toCode(p) {    
     var address; 
-    if (p.type === "A") {      //???????A???@???????????parseInt????????                     
+    if (p.type === "A") {                          
       if (p.arg.match(/^\d+$/)) {             
-        address = parseInt(p.arg);  //???????
+        address = parseInt(p.arg);  
       } else {
-        address = symTable[p.arg];   // ????????????????      
+        address = symTable[p.arg];       
       }   if (typeof address === 'undefined') {
           address = symTop;
           addSymbol(p.arg, address);
       }  
       return address; 
-    } else {                         //???C?? ??dtable??ctable???jtable
+    } else {                         
       var d = dest[p.d];
       var c = comp[p.c];
       var j = jump[p.j];
